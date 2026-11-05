@@ -3,201 +3,205 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#140c2c">
-  <title>Undercover entre potes</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>">
+  <meta name="theme-color" content="#1a2130">
+  <title>Undercover</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%231a2130%22/><rect x=%228%22 y=%2214%22 width=%2216%22 height=%224%22 rx=%222%22 fill=%22%23f2c94c%22/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="bg-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
-
   <main id="app">
+
     <!-- ================= ACCUEIL ================= -->
     <section id="screen-home" class="screen">
-      <div class="logo">
-        <div class="logo-emoji">🕵️</div>
-        <h1>Undercover</h1>
-        <p class="tagline">Trouve l'intrus parmi tes potes</p>
-      </div>
+      <header class="brand">
+        <h1 class="wordmark">Undercover</h1>
+        <p class="lede">Un mot chacun. Un intrus parmi vous.</p>
+      </header>
 
-      <div class="card">
-        <label for="home-name">Ton pseudo</label>
-        <input id="home-name" maxlength="16" autocomplete="nickname" placeholder="Ex : Max">
+      <div class="panel">
+        <div class="field">
+          <span class="field-label">Ton avatar</span>
+          <div id="home-avatars" class="avatar-picker" role="radiogroup" aria-label="Choisis ton avatar"></div>
+        </div>
 
-        <button id="btn-create" class="btn primary big">Créer une partie</button>
+        <div class="field">
+          <label class="field-label" for="home-name">Pseudo</label>
+          <input id="home-name" maxlength="16" autocomplete="nickname" placeholder="Comment tes potes t'appellent">
+        </div>
 
-        <div class="sep"><span>ou rejoindre</span></div>
+        <button id="btn-create" class="btn btn-primary btn-block">Créer une partie</button>
 
-        <label for="home-code">Code du salon</label>
-        <div class="row">
-          <input id="home-code" class="code-input" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="ABCD">
-          <button id="btn-join" class="btn secondary">Rejoindre</button>
+        <div class="divider"><span>ou</span></div>
+
+        <div class="field">
+          <label class="field-label" for="home-code">Code du salon</label>
+          <div class="inline-form">
+            <input id="home-code" class="code-input" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="ABCD">
+            <button id="btn-join" class="btn btn-secondary">Rejoindre</button>
+          </div>
         </div>
       </div>
 
-      <details class="card rules">
-        <summary>Comment on joue ?</summary>
-        <ul>
-          <li><b class="c-civil">Les Civils</b> ont tous le même mot.</li>
-          <li><b class="c-uc">L'Undercover</b> a un mot différent… et ne sait pas qu'il est l'Undercover !</li>
-          <li><b class="c-mw">Mr. White</b> n'a aucun mot : il doit bluffer.</li>
-          <li>Chacun son tour, donne <b>un seul mot</b> en rapport avec ton mot secret.</li>
-          <li>Puis tout le monde vote pour éliminer le plus suspect.</li>
-          <li>Les Civils gagnent s'ils éliminent tous les infiltrés. Les infiltrés gagnent s'il ne reste qu'un Civil.</li>
-          <li>Mr. White éliminé peut encore gagner s'il devine le mot des Civils.</li>
-        </ul>
+      <details class="panel rules">
+        <summary>Les règles</summary>
+        <dl>
+          <dt><span class="dot dot-civil"></span>Civils</dt>
+          <dd>Ils ont tous le même mot.</dd>
+          <dt><span class="dot dot-undercover"></span>Undercover</dt>
+          <dd>Il a un mot différent, et ne sait pas qu'il est l'intrus.</dd>
+          <dt><span class="dot dot-mrwhite"></span>Mr. White</dt>
+          <dd>Il n'a aucun mot. S'il est démasqué, il peut encore gagner en devinant le mot des Civils.</dd>
+        </dl>
+        <p>Chacun son tour, donne un mot en rapport avec le tien, puis votez pour éliminer le plus suspect. Les Civils gagnent quand tous les intrus sont éliminés, les intrus quand il ne reste qu'un Civil.</p>
       </details>
     </section>
 
-    <!-- ================= LOBBY ================= -->
+    <!-- ================= SALON ================= -->
     <section id="screen-lobby" class="screen">
       <header class="topbar">
-        <button id="btn-leave-lobby" class="btn ghost small">← Quitter</button>
-        <span class="topbar-title">Salon</span>
+        <button id="btn-leave-lobby" class="btn btn-quiet btn-sm">Quitter</button>
+        <div class="room-chip">Salon <strong id="lobby-code"></strong></div>
         <span></span>
       </header>
 
-      <div class="card share-card">
-        <p class="muted">Code du salon</p>
-        <div class="big-code" id="lobby-code"></div>
-        <button id="btn-share" class="btn secondary">🔗 Partager le lien</button>
+      <div class="lineup-wrap">
+        <div class="lineup-head">
+          <h2>Joueurs <span id="lobby-count" class="count"></span></h2>
+          <button id="btn-share" class="btn btn-secondary btn-sm">Inviter</button>
+        </div>
+        <div id="lobby-lineup" class="lineup"></div>
       </div>
 
-      <div class="card">
-        <h2>Joueurs <span id="lobby-count" class="pill"></span></h2>
-        <ul id="lobby-players" class="player-list"></ul>
+      <div class="panel">
+        <div class="field">
+          <span class="field-label">Ton avatar</span>
+          <div id="lobby-avatars" class="avatar-picker compact" role="radiogroup" aria-label="Change d'avatar"></div>
+        </div>
       </div>
 
-      <div class="card">
-        <h2>Réglages <span id="settings-lock" class="pill muted-pill">l'hôte choisit</span></h2>
+      <div class="panel settings">
+        <div class="settings-head">
+          <h2>Réglages</h2>
+          <span id="settings-lock" class="muted small">Choisis par l'hôte</span>
+        </div>
+
         <div class="setting">
-          <span>Undercovers</span>
+          <div><span class="setting-name">Undercovers</span></div>
           <div class="stepper">
-            <button id="uc-minus" aria-label="Moins">−</button>
-            <b id="set-uc">1</b>
-            <button id="uc-plus" aria-label="Plus">+</button>
+            <button id="uc-minus" aria-label="Un Undercover de moins">−</button>
+            <output id="set-uc">1</output>
+            <button id="uc-plus" aria-label="Un Undercover de plus">+</button>
           </div>
         </div>
+
         <div class="setting">
-          <span>Mr. White</span>
-          <button id="set-mw" class="toggle" role="switch" aria-checked="false"><span></span></button>
+          <div>
+            <span class="setting-name">Mr. White</span>
+            <span class="setting-help">Un joueur sans mot</span>
+          </div>
+          <button id="set-mw" class="switch" role="switch" aria-checked="false" aria-label="Mr. White"><span></span></button>
         </div>
-        <div class="setting column">
-          <span>Difficulté</span>
+
+        <div class="setting stacked">
+          <div>
+            <span class="setting-name">Indices par manche</span>
+            <span class="setting-help">Nombre de mots que chacun donne avant le vote</span>
+          </div>
+          <div class="segmented" id="set-clues">
+            <button data-clues="1">1</button>
+            <button data-clues="2">2</button>
+            <button data-clues="3">3</button>
+          </div>
+        </div>
+
+        <div class="setting stacked">
+          <div>
+            <span class="setting-name">Difficulté</span>
+            <span class="setting-help" id="mode-desc"></span>
+          </div>
           <div class="segmented" id="set-mode">
             <button data-mode="normal">Normal</button>
-            <button data-mode="hard">Hard 🔥</button>
+            <button data-mode="hard">Hard</button>
             <button data-mode="mixte">Mixte</button>
           </div>
-          <p id="mode-desc" class="hint"></p>
         </div>
+
         <p id="lobby-summary" class="summary"></p>
       </div>
 
-      <button id="btn-start" class="btn primary big">Lancer la partie</button>
-      <p id="lobby-wait" class="hint center"></p>
+      <button id="btn-start" class="btn btn-primary btn-block">Lancer la partie</button>
+      <p id="lobby-wait" class="muted center"></p>
     </section>
 
     <!-- ================= PARTIE ================= -->
     <section id="screen-game" class="screen">
       <header class="topbar">
-        <button id="btn-leave-game" class="btn ghost small">← Quitter</button>
-        <span class="topbar-title" id="game-round"></span>
-        <span class="pill" id="game-code"></span>
+        <button id="btn-leave-game" class="btn btn-quiet btn-sm">Quitter</button>
+        <div class="round-info"><strong id="game-round"></strong><span id="game-pass"></span></div>
+        <div class="room-chip"><strong id="game-code"></strong></div>
       </header>
 
-      <button id="word-card" class="word-card" type="button">
-        <span class="word-inner">
-          <span class="word-front">
-            <span class="word-eye">👀</span>
-            <span>Appuie pour voir ton mot</span>
-          </span>
-          <span class="word-back">
-            <span class="word-label" id="word-label">Ton mot</span>
-            <span class="word-text" id="word-text"></span>
-            <span class="word-sub" id="word-sub"></span>
-          </span>
-        </span>
+      <button id="word-card" class="word-card" type="button" aria-label="Afficher ou masquer ton mot">
+        <span class="word-label" id="word-label">Ton mot</span>
+        <span class="word-text" id="word-text"></span>
+        <span class="word-hint" id="word-hint">Touche pour afficher</span>
       </button>
 
-      <div id="status-banner" class="status-banner"></div>
-      <div id="phase-banner" class="phase-banner"></div>
-
-      <div id="clue-box" class="card action-card">
-        <form id="clue-form" class="row">
-          <input id="clue-input" maxlength="25" autocomplete="off" placeholder="Ton indice">
-          <button class="btn primary" type="submit">Envoyer</button>
+      <div id="prompt" class="prompt">
+        <p id="prompt-title" class="prompt-title"></p>
+        <p id="prompt-sub" class="prompt-sub"></p>
+        <form id="clue-form" class="inline-form">
+          <input id="clue-input" maxlength="25" autocomplete="off" autocapitalize="off" placeholder="Ton mot">
+          <button class="btn btn-primary" type="submit">Envoyer</button>
+        </form>
+        <form id="mw-form" class="inline-form">
+          <input id="mw-input" maxlength="40" autocomplete="off" placeholder="Le mot des Civils">
+          <button class="btn btn-primary" type="submit">Valider</button>
         </form>
       </div>
 
-      <div id="vote-box" class="card action-card">
-        <h3 id="vote-title">Qui est l'intrus ?</h3>
-        <div id="vote-options" class="vote-grid"></div>
-        <p id="vote-progress" class="hint center"></p>
-      </div>
-
-      <div id="mw-box" class="card action-card mw-card">
-        <h3>Dernière chance ! Quel est le mot des Civils ?</h3>
-        <form id="mw-form" class="row">
-          <input id="mw-input" maxlength="40" autocomplete="off" placeholder="Ta proposition">
-          <button class="btn primary" type="submit">Valider</button>
-        </form>
+      <div class="lineup-wrap">
+        <div id="game-lineup" class="lineup"></div>
       </div>
 
       <div id="host-tools" class="host-tools">
-        <button id="btn-skip" class="btn ghost small">⏭ Passer son tour</button>
+        <button id="btn-skip" class="btn btn-quiet btn-sm"></button>
+        <button id="btn-stop" class="btn btn-quiet btn-sm btn-danger">Arrêter la partie</button>
       </div>
-
-      <div class="card">
-        <h2>Joueurs</h2>
-        <ul id="game-players" class="player-grid"></ul>
-      </div>
-
-      <div class="card">
-        <h2>Indices</h2>
-        <div id="clue-history" class="clue-history"></div>
-      </div>
-
-      <button id="btn-stop" class="btn ghost small danger center-btn">Arrêter la partie</button>
     </section>
 
     <!-- ================= FIN ================= -->
     <section id="screen-end" class="screen">
-      <div class="end-banner" id="end-banner">
-        <div class="end-emoji" id="end-emoji"></div>
+      <header class="result" id="end-result">
+        <p class="result-kicker" id="end-kicker"></p>
         <h1 id="end-title"></h1>
-        <p id="end-sub"></p>
-      </div>
+      </header>
 
-      <div class="card words-reveal">
-        <div class="reveal-col civil">
-          <span>Mot des Civils</span>
-          <b id="end-civil"></b>
+      <div class="reveal">
+        <div class="reveal-item civil">
+          <span>Civils</span>
+          <strong id="end-civil"></strong>
         </div>
-        <div class="reveal-col undercover">
-          <span>Mot de l'Undercover</span>
-          <b id="end-uc"></b>
+        <div class="reveal-item undercover">
+          <span>Undercover</span>
+          <strong id="end-uc"></strong>
         </div>
-        <span class="pill mode-pill" id="end-mode"></span>
+      </div>
+      <p id="end-mode" class="muted small center"></p>
+
+      <div class="lineup-wrap">
+        <div id="end-lineup" class="lineup"></div>
       </div>
 
-      <div class="card">
-        <h2>Les rôles</h2>
-        <ul id="end-players" class="player-list"></ul>
+      <div class="end-actions">
+        <button id="btn-restart" class="btn btn-primary btn-block">Rejouer</button>
+        <button id="btn-to-lobby" class="btn btn-secondary btn-block">Changer les réglages</button>
+        <p id="end-wait" class="muted center">L'hôte va relancer une partie.</p>
+        <button id="btn-leave-end" class="btn btn-quiet btn-sm">Quitter le salon</button>
       </div>
-
-      <div class="card">
-        <h2>Tous les indices</h2>
-        <div id="end-clues" class="clue-history"></div>
-      </div>
-
-      <button id="btn-restart" class="btn primary big">🔁 Rejouer</button>
-      <button id="btn-to-lobby" class="btn secondary">Changer les réglages</button>
-      <p id="end-wait" class="hint center">L'hôte va relancer une partie…</p>
-      <button id="btn-leave-end" class="btn ghost small center-btn">Quitter le salon</button>
     </section>
   </main>
 
@@ -205,10 +209,10 @@
     <div id="overlay-card" class="overlay-card"></div>
   </div>
   <div id="toast" class="toast" role="status"></div>
-  <div id="conn" class="conn">Connexion perdue… on se reconnecte</div>
-  <div id="confetti" class="confetti" aria-hidden="true"></div>
+  <div id="conn" class="conn">Connexion perdue. Reconnexion en cours…</div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="avatars.js"></script>
   <script src="client.js"></script>
 </body>
 </html>

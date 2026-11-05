@@ -1,7 +1,7 @@
 # Undercover en ligne 🕵️
 
 Le jeu Undercover à jouer entre potes, chacun sur son téléphone ou son ordi.
-1 216 paires de mots incluses (756 en Normal, 460 en Hard).
+1 216 paires de mots incluses (756 en Normal, 460 en Hard), 16 avatars au choix.
 
 ## Contenu
 
@@ -13,6 +13,7 @@ undercover/
 └── public/
     ├── index.html   ← la page
     ├── style.css    ← le design
+    ├── avatars.js   ← les 16 avatars (dessins SVG)
     └── client.js    ← ce qui tourne dans le navigateur
 ```
 
@@ -75,6 +76,8 @@ Modifie le fichier sur GitHub (icône crayon ✏️ → *Commit changes*). Rende
 ## Règles implémentées
 
 - Civils : même mot. Undercover : mot différent, il ne sait pas qu'il est l'Undercover. Mr. White (optionnel) : aucun mot.
+- L'hôte choisit le nombre d'indices par manche (1, 2 ou 3) : chacun donne ce nombre de mots, un tour de table à la fois, avant le vote.
+- Les joueurs sont affichés en ligne, avec leurs mots empilés en dessous. Pendant le vote, on touche directement le joueur suspect.
 - Indices d'un seul mot, chacun son tour. Mr. White ne commence jamais le premier tour. Le premier joueur change à chaque tour.
 - Vote : en cas d'égalité, nouveau vote entre les ex aequo. Si encore égalité, tirage au sort.
 - Rôle de l'éliminé révélé (pas son mot).

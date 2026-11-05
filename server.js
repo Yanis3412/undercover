@@ -19,6 +19,8 @@ const LOBBY_REMOVE_MS = 2 * 60 * 1000;   // un joueur déconnecté au lobby est 
 const AUTO_SKIP_MS = 45 * 1000;          // tour passé automatiquement si le joueur est déconnecté
 const ROOM_IDLE_MS = 15 * 60 * 1000;     // salon supprimé si personne n'est connecté pendant ce délai
 const EVENT_MAX_AGE_MS = 12 * 1000;
+const AVATAR_COUNT = 16;               // nombre d'avatars proposés (voir public/client.js)
+const MAX_CLUES_PER_ROUND = 3;
 
 const app = express();
 const server = http.createServer(app);
@@ -105,7 +107,7 @@ function newRoom() {
     code: makeCode(),
     hostId: null,
     players: [],
-    settings: { undercovers: 1, mrWhite: false, mode: 'normal' },
+    settings: { undercovers: 1, mrWhite: false, mode: 'normal', cluesPerRound: 1 },
     phase: 'lobby', // lobby | clues | vote | mrwhite | end
     gameId: 0,
     round: 0,
@@ -113,6 +115,7 @@ function newRoom() {
     startSeat: 0,
     turnOrder: [],
     turnIndex: 0,
+    pass: 0, // numéro de l'indice dans la manche (0 = premier)
     turnStartedAt: 0,
     clues: [],
     votes: {},
@@ -133,9 +136,15 @@ function newRoom() {
   return room;
 }
 
-function newPlayer(name, token) {
+function cleanAvatar(a) {
+  const n = Number(a);
+  return Number.isInteger(n) && n >= 0 && n < AVATAR_COUNT ? n : crypto.randomInt(AVATAR_COUNT);
+}
+
+function newPlayer(name, token, avatar) {
   return {
     id: randomId(),
+    avatar: cleanAvatar(avatar),
     token: String(token || randomId()).slice(0, 64),
     name,
     socketId: null,
@@ -171,6 +180,7 @@ function viewFor(room, viewer) {
     return {
       id: p.id,
       name: p.name,
+      avatar: p.avatar,
       connected: p.connected,
       inGame: p.inGame,
       alive: p.alive,
@@ -202,12 +212,14 @@ function viewFor(room, viewer) {
     players,
     you,
     clues: inProgress || ended ? room.clues : [],
+    seats: inProgress || ended ? room.seatOrder : [],
   };
 
   if (room.phase === 'clues') {
     view.turn = {
       order: room.turnOrder,
       index: room.turnIndex,
+      pass: room.pass,
       currentId: room.turnOrder[room.turnIndex] || null,
     };
   }
@@ -338,6 +350,7 @@ function startRound(room) {
   }
   room.turnOrder = order;
   room.turnIndex = 0;
+  room.pass = 0;
   room.turnStartedAt = Date.now();
   room.phase = 'clues';
   room.votes = {};
@@ -353,12 +366,19 @@ function advanceTurn(room) {
   }
   room.turnStartedAt = Date.now();
   if (room.turnIndex >= room.turnOrder.length) {
+    // Fin d'un tour de table : on recommence si l'hôte a demandé plusieurs indices par manche
+    if (room.pass + 1 < room.settings.cluesPerRound && alivePlayers(room).length > 0) {
+      room.pass += 1;
+      room.turnIndex = -1;
+      advanceTurn(room);
+      return;
+    }
     startVote(room, alivePlayers(room).map(p => p.id), false);
   }
 }
 
 function addClue(room, player, text, skipped = false) {
-  room.clues.push({ round: room.round, playerId: player.id, name: player.name, text, skipped });
+  room.clues.push({ round: room.round, pass: room.pass, playerId: player.id, name: player.name, text, skipped });
 }
 
 function startVote(room, candidates, revote) {
@@ -561,7 +581,7 @@ function ctx(socket) {
 const reply = (cb, data) => { if (typeof cb === 'function') cb(data); };
 
 io.on('connection', socket => {
-  socket.on('create', ({ name, token } = {}, cb) => {
+  socket.on('create', ({ name, token, avatar } = {}, cb) => {
     name = cleanName(name);
     if (!name) return reply(cb, { error: 'Choisis un pseudo.' });
     if (socket.data.roomCode) {
@@ -574,7 +594,7 @@ io.on('connection', socket => {
       }
     }
     const room = newRoom();
-    const player = newPlayer(name, token);
+    const player = newPlayer(name, token, avatar);
     room.players.push(player);
     room.hostId = player.id;
     attach(room, player, socket);
@@ -582,7 +602,7 @@ io.on('connection', socket => {
     broadcast(room);
   });
 
-  socket.on('join', ({ code, name, token } = {}, cb) => {
+  socket.on('join', ({ code, name, token, avatar } = {}, cb) => {
     name = cleanName(name);
     code = String(code || '').toUpperCase().trim();
     const room = rooms.get(code);
@@ -596,11 +616,12 @@ io.on('connection', socket => {
         // Le joueur revient (ex : onglet fermé sur mobile) : il reprend sa place
         player = same;
         player.token = String(token || randomId()).slice(0, 64);
+        if (avatar !== undefined) player.avatar = cleanAvatar(avatar);
       } else if (same) {
         return reply(cb, { error: 'Ce pseudo est déjà pris dans ce salon.' });
       } else {
         if (room.players.length >= MAX_PLAYERS) return reply(cb, { error: 'Le salon est plein (20 joueurs max).' });
-        player = newPlayer(name, token);
+        player = newPlayer(name, token, avatar);
         room.players.push(player);
       }
     }
@@ -615,6 +636,16 @@ io.on('connection', socket => {
     if (!room || !player) return reply(cb, { error: 'Partie introuvable.' });
     attach(room, player, socket);
     reply(cb, { ok: true, code: room.code });
+    broadcast(room);
+  });
+
+  socket.on('avatar', ({ avatar } = {}, cb) => {
+    const { room, player } = ctx(socket);
+    if (!room) return reply(cb, { error: 'Pas de salon.' });
+    const n = Number(avatar);
+    if (!Number.isInteger(n) || n < 0 || n >= AVATAR_COUNT) return reply(cb, { error: 'Avatar invalide.' });
+    player.avatar = n;
+    reply(cb, { ok: true });
     broadcast(room);
   });
 
@@ -638,6 +669,7 @@ io.on('connection', socket => {
     if (Number.isInteger(settings.undercovers)) s.undercovers = Math.min(9, Math.max(1, settings.undercovers));
     if (typeof settings.mrWhite === 'boolean') s.mrWhite = settings.mrWhite;
     if (['normal', 'hard', 'mixte'].includes(settings.mode)) s.mode = settings.mode;
+    if (Number.isInteger(settings.cluesPerRound)) s.cluesPerRound = Math.min(MAX_CLUES_PER_ROUND, Math.max(1, settings.cluesPerRound));
     reply(cb, { ok: true });
     broadcast(room);
   });
