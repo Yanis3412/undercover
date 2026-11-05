@@ -1,0 +1,16 @@
+{
+  "name": "undercover-en-ligne",
+  "version": "1.0.0",
+  "description": "Jeu Undercover en ligne entre potes",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}
