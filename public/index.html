@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#140c2c">
+  <title>Undercover entre potes</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <main id="app">
+    <!-- ================= ACCUEIL ================= -->
+    <section id="screen-home" class="screen">
+      <div class="logo">
+        <div class="logo-emoji">🕵️</div>
+        <h1>Undercover</h1>
+        <p class="tagline">Trouve l'intrus parmi tes potes</p>
+      </div>
+
+      <div class="card">
+        <label for="home-name">Ton pseudo</label>
+        <input id="home-name" maxlength="16" autocomplete="nickname" placeholder="Ex : Max">
+
+        <button id="btn-create" class="btn primary big">Créer une partie</button>
+
+        <div class="sep"><span>ou rejoindre</span></div>
+
+        <label for="home-code">Code du salon</label>
+        <div class="row">
+          <input id="home-code" class="code-input" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="ABCD">
+          <button id="btn-join" class="btn secondary">Rejoindre</button>
+        </div>
+      </div>
+
+      <details class="card rules">
+        <summary>Comment on joue ?</summary>
+        <ul>
+          <li><b class="c-civil">Les Civils</b> ont tous le même mot.</li>
+          <li><b class="c-uc">L'Undercover</b> a un mot différent… et ne sait pas qu'il est l'Undercover !</li>
+          <li><b class="c-mw">Mr. White</b> n'a aucun mot : il doit bluffer.</li>
+          <li>Chacun son tour, donne <b>un seul mot</b> en rapport avec ton mot secret.</li>
+          <li>Puis tout le monde vote pour éliminer le plus suspect.</li>
+          <li>Les Civils gagnent s'ils éliminent tous les infiltrés. Les infiltrés gagnent s'il ne reste qu'un Civil.</li>
+          <li>Mr. White éliminé peut encore gagner s'il devine le mot des Civils.</li>
+        </ul>
+      </details>
+    </section>
+
+    <!-- ================= LOBBY ================= -->
+    <section id="screen-lobby" class="screen">
+      <header class="topbar">
+        <button id="btn-leave-lobby" class="btn ghost small">← Quitter</button>
+        <span class="topbar-title">Salon</span>
+        <span></span>
+      </header>
+
+      <div class="card share-card">
+        <p class="muted">Code du salon</p>
+        <div class="big-code" id="lobby-code"></div>
+        <button id="btn-share" class="btn secondary">🔗 Partager le lien</button>
+      </div>
+
+      <div class="card">
+        <h2>Joueurs <span id="lobby-count" class="pill"></span></h2>
+        <ul id="lobby-players" class="player-list"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Réglages <span id="settings-lock" class="pill muted-pill">l'hôte choisit</span></h2>
+        <div class="setting">
+          <span>Undercovers</span>
+          <div class="stepper">
+            <button id="uc-minus" aria-label="Moins">−</button>
+            <b id="set-uc">1</b>
+            <button id="uc-plus" aria-label="Plus">+</button>
+          </div>
+        </div>
+        <div class="setting">
+          <span>Mr. White</span>
+          <button id="set-mw" class="toggle" role="switch" aria-checked="false"><span></span></button>
+        </div>
+        <div class="setting column">
+          <span>Difficulté</span>
+          <div class="segmented" id="set-mode">
+            <button data-mode="normal">Normal</button>
+            <button data-mode="hard">Hard 🔥</button>
+            <button data-mode="mixte">Mixte</button>
+          </div>
+          <p id="mode-desc" class="hint"></p>
+        </div>
+        <p id="lobby-summary" class="summary"></p>
+      </div>
+
+      <button id="btn-start" class="btn primary big">Lancer la partie</button>
+      <p id="lobby-wait" class="hint center"></p>
+    </section>
+
+    <!-- ================= PARTIE ================= -->
+    <section id="screen-game" class="screen">
+      <header class="topbar">
+        <button id="btn-leave-game" class="btn ghost small">← Quitter</button>
+        <span class="topbar-title" id="game-round"></span>
+        <span class="pill" id="game-code"></span>
+      </header>
+
+      <button id="word-card" class="word-card" type="button">
+        <span class="word-inner">
+          <span class="word-front">
+            <span class="word-eye">👀</span>
+            <span>Appuie pour voir ton mot</span>
+          </span>
+          <span class="word-back">
+            <span class="word-label" id="word-label">Ton mot</span>
+            <span class="word-text" id="word-text"></span>
+            <span class="word-sub" id="word-sub"></span>
+          </span>
+        </span>
+      </button>
+
+      <div id="status-banner" class="status-banner"></div>
+      <div id="phase-banner" class="phase-banner"></div>
+
+      <div id="clue-box" class="card action-card">
+        <form id="clue-form" class="row">
+          <input id="clue-input" maxlength="25" autocomplete="off" placeholder="Ton indice">
+          <button class="btn primary" type="submit">Envoyer</button>
+        </form>
+      </div>
+
+      <div id="vote-box" class="card action-card">
+        <h3 id="vote-title">Qui est l'intrus ?</h3>
+        <div id="vote-options" class="vote-grid"></div>
+        <p id="vote-progress" class="hint center"></p>
+      </div>
+
+      <div id="mw-box" class="card action-card mw-card">
+        <h3>Dernière chance ! Quel est le mot des Civils ?</h3>
+        <form id="mw-form" class="row">
+          <input id="mw-input" maxlength="40" autocomplete="off" placeholder="Ta proposition">
+          <button class="btn primary" type="submit">Valider</button>
+        </form>
+      </div>
+
+      <div id="host-tools" class="host-tools">
+        <button id="btn-skip" class="btn ghost small">⏭ Passer son tour</button>
+      </div>
+
+      <div class="card">
+        <h2>Joueurs</h2>
+        <ul id="game-players" class="player-grid"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Indices</h2>
+        <div id="clue-history" class="clue-history"></div>
+      </div>
+
+      <button id="btn-stop" class="btn ghost small danger center-btn">Arrêter la partie</button>
+    </section>
+
+    <!-- ================= FIN ================= -->
+    <section id="screen-end" class="screen">
+      <div class="end-banner" id="end-banner">
+        <div class="end-emoji" id="end-emoji"></div>
+        <h1 id="end-title"></h1>
+        <p id="end-sub"></p>
+      </div>
+
+      <div class="card words-reveal">
+        <div class="reveal-col civil">
+          <span>Mot des Civils</span>
+          <b id="end-civil"></b>
+        </div>
+        <div class="reveal-col undercover">
+          <span>Mot de l'Undercover</span>
+          <b id="end-uc"></b>
+        </div>
+        <span class="pill mode-pill" id="end-mode"></span>
+      </div>
+
+      <div class="card">
+        <h2>Les rôles</h2>
+        <ul id="end-players" class="player-list"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Tous les indices</h2>
+        <div id="end-clues" class="clue-history"></div>
+      </div>
+
+      <button id="btn-restart" class="btn primary big">🔁 Rejouer</button>
+      <button id="btn-to-lobby" class="btn secondary">Changer les réglages</button>
+      <p id="end-wait" class="hint center">L'hôte va relancer une partie…</p>
+      <button id="btn-leave-end" class="btn ghost small center-btn">Quitter le salon</button>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay" aria-live="polite">
+    <div id="overlay-card" class="overlay-card"></div>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <div id="conn" class="conn">Connexion perdue… on se reconnecte</div>
+  <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
